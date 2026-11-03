@@ -124,6 +124,9 @@ public sealed class SaveDoc
 
     // ---------------------------------------------------------------- save
 
+    /// <summary>Marks the run like the game does when its debug menu was used (no leaderboard for this run).</summary>
+    public void MarkEdited() => State["debug_used"] = true;
+
     /// <summary>Keeps the main-menu preview ("meta") in line with the edited state.</summary>
     public void SyncMeta()
     {

@@ -270,27 +270,25 @@ public partial class MainWindow : Window
             FocusManager.SetFocusedElement(this, this); // commit pending text box edits
             Keyboard.ClearFocus();
 
+            // stale checks first, so nothing is half written
+            if ((dirty && File.Exists(doc.Path) && File.GetLastWriteTimeUtc(doc.Path) != doc.LoadedWriteTime)
+                || (profile is not null && File.Exists(profile.Path) && File.GetLastWriteTimeUtc(profile.Path) != profile.LoadedWriteTime))
+            {
+                MessageBox.Show(this, Loc.T("ChangedOnDisk"), Loc.T("SaveFailed"), MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             string backupName = "–";
             if (dirty)
             {
-                if (File.Exists(doc.Path) && File.GetLastWriteTimeUtc(doc.Path) != doc.LoadedWriteTime)
-                {
-                    MessageBox.Show(this, Loc.T("ChangedOnDisk"), Loc.T("SaveFailed"), MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
+                doc.MarkEdited(); // fair play: an edited run never counts for the leaderboards
                 var bytes = doc.Build();
                 if (File.Exists(doc.Path)) backupName = Path.GetFileName(SaveStore.Backup(Root, doc.Path));
                 SaveStore.WriteAtomic(doc.Path, bytes);
             }
-            if (profileDirty && profile is not null)
-            {
-                if (File.GetLastWriteTimeUtc(profile.Path) != profile.LoadedWriteTime)
-                {
-                    MessageBox.Show(this, Loc.T("ChangedOnDisk"), Loc.T("SaveFailed"), MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-                profile.Save();
-            }
+            // fair play: mark this PC like the game does when mods or the debug menu were used
+            bool tainted = profile?.MarkTainted() == true;
+            if ((profileDirty || tainted) && profile is not null) profile.Save();
             var path = doc.Path;
             dirty = profileDirty = false;
             LoadSlots(path);

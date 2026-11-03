@@ -123,14 +123,13 @@ public partial class MainWindow
         exButtons.Children.Add(UiKit.SmallButton("FuelFull", (_, _) => { if (s.Has("jetpack_fuel")) { s.SetNum("jetpack_fuel", 100); MarkDirty(Loc.T("F_jetpack_fuel")); BuildMoneyTab(); } }));
         ex.Children.Add(exButtons);
         var sw = new WrapPanel();
-        foreach (var k in new[] { "floor_hatch", "run_timed", "contract_pinned", "debug_used" })
+        foreach (var k in new[] { "floor_hatch", "run_timed", "contract_pinned" })
             if (s[k] is bool b)
             {
                 string key = k;
                 sw.Children.Add(UiKit.Switch("C_" + key, b, v => { s[key] = v; MarkDirty(Loc.T("C_" + key)); }));
             }
         ex.Children.Add(sw);
-        ex.Children.Add(UiKit.Hint("DebugHint"));
         two.Children.Add(UiKit.Card(ex, new Thickness(0)));
 
         var hay = new StackPanel();

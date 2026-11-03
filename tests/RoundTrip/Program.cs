@@ -28,6 +28,7 @@ if (args.Length == 2 && args[0] == "--edit")
     doc.TechRanks!["belt_speed"] = 9L;
     doc.TechRanks!["jump_height"] = 1L;
     var backup = SaveStore.Backup(root, slot);
+    doc.MarkEdited();
     SaveStore.WriteAtomic(slot, doc.Build());
 
     var re = SaveDoc.Load(slot);
@@ -38,6 +39,7 @@ if (args.Length == 2 && args[0] == "--edit")
     Check(Math.Abs(re.PlayerPos.X - nx) < 1e-4 && Math.Abs(re.PlayerPos.Z - nz) < 1e-4, "player teleported");
     Check(re.TechRanks!.Int("belt_speed") == 9 && re.TechRanks!.Int("jump_height") == 1, "tech ranks");
     Check(File.Exists(backup) && SaveDoc.Load(backup).State.Num("money") != 1234567.5, "backup holds old state");
+    Check(re.State.Bool("debug_used"), "run marked (debug_used = true)");
 
     var prof = ProfileCfg.TryLoad(SaveStore.ProfilePath(root))!;
     var before = File.ReadAllLines(prof.Path).Where(l => !l.StartsWith("best_dug=")).ToList();
@@ -46,6 +48,15 @@ if (args.Length == 2 && args[0] == "--edit")
     var after = File.ReadAllLines(prof.Path);
     Check(after.Contains("best_dug=99999.0"), "profile best_dug written");
     Check(after.Where(l => !l.StartsWith("best_dug=")).SequenceEqual(before), "profile other lines untouched");
+
+    var prof2 = ProfileCfg.TryLoad(SaveStore.ProfilePath(root))!;
+    var beforeTaint = File.ReadAllLines(prof2.Path);
+    Check(prof2.MarkTainted(), "profile taint changes file");
+    prof2.Save();
+    var afterTaint = File.ReadAllLines(prof2.Path);
+    Check(afterTaint.Contains("debug_tainted=true") && !afterTaint.Contains("debug_tainted=false"), "profile debug_tainted = true");
+    Check(afterTaint.Length == beforeTaint.Length && afterTaint.Where((l, i) => l != beforeTaint[i]).Count() == 1, "only that one line changed");
+    Check(!ProfileCfg.TryLoad(prof2.Path)!.MarkTainted(), "second mark is a no-op");
     return fails;
 }
 

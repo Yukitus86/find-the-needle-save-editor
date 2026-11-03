@@ -26,6 +26,21 @@
 
 Unofficial fan tool, not affiliated with the developers of Find The Needle.
 
+## 🏁 Fair play: edited saves stay off the leaderboards
+
+Find The Needle has online leaderboards. **Anything edited with this tool does not count for them – on purpose.**
+
+Every time the editor saves, it sets the same marks the game itself uses when mods or the debug menu were used:
+
+| Mark | Where | Effect |
+|------|-------|--------|
+| `debug_used = true` | the edited save slot | this run is flagged as not ranked |
+| `debug_tainted=true` | `[career]` in `profile.cfg` | this PC is flagged; the game then shows *"Mods or the debug menu were used on this PC, so you will not show up on the leaderboards."* |
+
+This cannot be switched off in the editor, and restoring an old backup does not remove the PC mark. Nothing else is touched: your online identity in `profile.cfg` stays exactly as it is, and the editor never talks to any server.
+
+If you care about your leaderboard spot, **do not save with this editor**. Just looking around (radar, needles, stats) without saving changes nothing.
+
 ## 📡 Haystack radar
 
 The pile in Find The Needle hides a handful of needles under metres of hay. The save stores the full height map of the pile and the exact position of every needle – the radar draws both.
@@ -51,7 +66,7 @@ The pile in Find The Needle hides a handful of needles under metres of hay. The 
 | **Gear** | Shop tools as clickable tiles, the build hotbar as keys 1–9, gifts waiting to be claimed, clear the "new" badges |
 | **Buildings** | Overview (count, switched on, invested, total fuel), one card per building type with on/off switches, fuel bars, storage and tier; switch all on/off, refuel all generators |
 | **Missions** | Current mission, contracts, done/paid lists as chips, spending analysis from the purchase log (by kind, biggest items) |
-| **Career** | Records across all runs from `profile.cfg` (online identity and leaderboard data are never touched) |
+| **Career** | Records across all runs from `profile.cfg` (online identity is never touched) |
 | **Backups** | Automatic backup before every save, manual backup, restore any backup |
 | **Raw data** | The complete save as a tree; every simple value can be edited. Export as JSON or decrypted `.bin`, import `.bin` |
 
@@ -65,6 +80,7 @@ The pile in Find The Needle hides a handful of needles under metres of hay. The 
 
 Also:
 
+- 🏁 Saving marks the run and the PC as not ranked (see [Fair play](#-fair-play-edited-saves-stay-off-the-leaderboards))
 - Unchanged saves are written back byte for byte; every save is decrypted and parsed again before it is written
 - Saving is locked while the game is running (its autosave would overwrite your changes)
 - Refuses to overwrite a slot the game saved after the editor loaded it

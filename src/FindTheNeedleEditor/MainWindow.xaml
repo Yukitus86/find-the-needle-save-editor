@@ -58,6 +58,13 @@
                 </StackPanel>
 
                 <StackPanel DockPanel.Dock="Bottom" Margin="0,12,0,0">
+                    <Border Background="{StaticResource AccentSoft}" BorderBrush="{StaticResource Accent}" BorderThickness="1" CornerRadius="10"
+                            Padding="12,9" Margin="0,0,0,12" ToolTip="{l:T FairPlayTip}">
+                        <StackPanel>
+                            <TextBlock Text="{l:T FairPlayTitle}" FontWeight="SemiBold" Margin="0,0,0,3" />
+                            <TextBlock Text="{l:T FairPlay}" TextWrapping="Wrap" FontSize="11.5" Foreground="{StaticResource Muted}" />
+                        </StackPanel>
+                    </Border>
                     <Button x:Name="FindKeyButton" Content="{l:T FindKey}" Click="FindKey_Click" Margin="0,0,0,8" Visibility="Collapsed"
                             BorderBrush="{StaticResource Warn}" ToolTip="{l:T FindKeyHint}" />
                     <Button Content="{l:T Reload}" Click="Reload_Click" Margin="0,0,0,8" />
