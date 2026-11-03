@@ -1,0 +1,474 @@
+<Window x:Class="FindTheNeedleEditor.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="clr-namespace:FindTheNeedleEditor"
+        Title="Find The Needle – Savegame Editor"
+        Icon="Assets/app.ico"
+        Width="1460" Height="900" MinWidth="1180" MinHeight="700"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource Bg}" Foreground="{StaticResource Text}"
+        FontFamily="Segoe UI" FontSize="13"
+        UseLayoutRounding="True" TextOptions.TextFormattingMode="Display">
+
+    <Window.Resources>
+        <Style x:Key="ColLabel" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource Muted}" />
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style x:Key="HeadValue" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style x:Key="CellBox" TargetType="TextBox" BasedOn="{StaticResource GridEdit}">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style x:Key="LegendDot" TargetType="Ellipse">
+            <Setter Property="Width" Value="11" />
+            <Setter Property="Height" Value="11" />
+            <Setter Property="Margin" Value="0,0,8,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="290" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- ============ Sidebar ============ -->
+        <Border Background="{StaticResource Panel}" BorderBrush="{StaticResource Line}" BorderThickness="0,0,1,0">
+            <DockPanel Margin="16">
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,18">
+                    <Image Source="Assets/logo.png" Width="58" Height="58" RenderOptions.BitmapScalingMode="HighQuality" />
+                    <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="Find The Needle" FontSize="17" FontWeight="Bold" />
+                        <TextBlock Text="{l:T Subtitle}" Foreground="{StaticResource Muted}" />
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <Button x:Name="FlagDe" Style="{StaticResource FlagButton}" Click="LanguageGerman_Click" ToolTip="{l:T LanguageGerman}">
+                                <Image Source="{StaticResource FlagDE}" Width="26" Height="14" Stretch="Fill" />
+                            </Button>
+                            <Button x:Name="FlagEn" Style="{StaticResource FlagButton}" Click="LanguageEnglish_Click" ToolTip="{l:T LanguageEnglish}">
+                                <Image Source="{StaticResource FlagUS}" Width="26" Height="14" Stretch="Fill" />
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel DockPanel.Dock="Bottom" Margin="0,12,0,0">
+                    <Button x:Name="FindKeyButton" Content="{l:T FindKey}" Click="FindKey_Click" Margin="0,0,0,8" Visibility="Collapsed"
+                            BorderBrush="{StaticResource Warn}" ToolTip="{l:T FindKeyHint}" />
+                    <Button Content="{l:T Reload}" Click="Reload_Click" Margin="0,0,0,8" />
+                    <Button Content="{l:T OpenFile}" Click="OpenFile_Click" Margin="0,0,0,8" />
+                    <Button Content="{l:T OpenSaveFolder}" Click="OpenSaveFolder_Click" />
+                </StackPanel>
+
+                <TextBlock DockPanel.Dock="Top" Text="{l:T SaveGames}" Foreground="{StaticResource Muted}" FontSize="11"
+                           FontWeight="SemiBold" Margin="2,0,0,8" />
+
+                <ListBox x:Name="SlotList" SelectionChanged="SlotList_SelectionChanged">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel>
+                                <DockPanel>
+                                    <TextBlock DockPanel.Dock="Right" Text="{Binding LastPlayedText}" Foreground="{StaticResource Muted}" FontSize="11" VerticalAlignment="Center" />
+                                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="14" />
+                                </DockPanel>
+                                <TextBlock Text="{Binding MoneyText}" Foreground="{StaticResource Gold}" FontSize="16" FontWeight="SemiBold" Margin="0,4,0,2" />
+                                <TextBlock Foreground="{StaticResource Muted}" FontSize="11">
+                                    <Run Text="📍" /> <Run Text="{Binding NeedleText, Mode=OneWay}" />
+                                    <Run Text="   ⏱" /> <Run Text="{Binding PlayTimeText, Mode=OneWay}" />
+                                    <Run Text="   ◫" /> <Run Text="{Binding Pile, Mode=OneWay}" />
+                                </TextBlock>
+                                <TextBlock Text="{Binding Error}" Foreground="{StaticResource Bad}" FontSize="11" TextWrapping="Wrap" Margin="0,4,0,0">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Style.Triggers>
+                                                <Trigger Property="Text" Value="">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </Trigger>
+                                                <Trigger Property="Text" Value="{x:Null}">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+        </Border>
+
+        <!-- ============ Main ============ -->
+        <DockPanel Grid.Column="1" Margin="22,18,22,16">
+
+            <Border x:Name="GameRunningBanner" DockPanel.Dock="Top" Background="{StaticResource WarnSoft}" BorderBrush="{StaticResource Warn}"
+                    BorderThickness="1" CornerRadius="10" Padding="14,9" Margin="0,0,0,12" Visibility="Collapsed">
+                <TextBlock Foreground="{StaticResource Warn}" TextWrapping="Wrap" Text="{l:T GameRunning}" />
+            </Border>
+
+            <!-- Header -->
+            <Border DockPanel.Dock="Top" Style="{StaticResource Card}" Padding="18,14">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                        <StackPanel Margin="16,0">
+                            <TextBlock Text="{l:T HdrMoney}" Style="{StaticResource ColLabel}" />
+                            <TextBlock x:Name="HeaderMoney" Text="–" Style="{StaticResource HeadValue}" Foreground="{StaticResource Gold}" />
+                        </StackPanel>
+                        <StackPanel Margin="16,0">
+                            <TextBlock Text="{l:T HdrNeedles}" Style="{StaticResource ColLabel}" />
+                            <TextBlock x:Name="HeaderNeedles" Text="–" Style="{StaticResource HeadValue}" />
+                        </StackPanel>
+                        <StackPanel Margin="16,0">
+                            <TextBlock Text="{l:T HdrPlayTime}" Style="{StaticResource ColLabel}" />
+                            <TextBlock x:Name="HeaderPlayTime" Text="–" Style="{StaticResource HeadValue}" />
+                        </StackPanel>
+                        <StackPanel Margin="16,0,0,0">
+                            <TextBlock Text="{l:T HdrSavedAt}" Style="{StaticResource ColLabel}" />
+                            <TextBlock x:Name="HeaderSavedAt" Text="–" Style="{StaticResource HeadValue}" />
+                        </StackPanel>
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock x:Name="HeaderTitle" Style="{StaticResource H1}" Text="{l:T NoSlot}" />
+                        <TextBlock x:Name="HeaderPath" Style="{StaticResource Hint}" Margin="0,3,0,0" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
+            <!-- Bottom bar -->
+            <Border DockPanel.Dock="Bottom" Style="{StaticResource Card}" Padding="14,10" Margin="0,12,0,0">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                        <Button x:Name="DiscardButton" Content="{l:T Discard}" Click="Discard_Click" Margin="0,0,10,0" IsEnabled="False" />
+                        <Button x:Name="SaveButton" Content="{l:T SaveChanges}" Style="{StaticResource AccentButton}" Padding="18,8"
+                                Click="Save_Click" IsEnabled="False" />
+                    </StackPanel>
+                    <Ellipse x:Name="StatusDot" Width="9" Height="9" Fill="{StaticResource Muted}" VerticalAlignment="Center" Margin="2,0,10,0" />
+                    <TextBlock x:Name="StatusText" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Foreground="{StaticResource Muted}"
+                               Text="{l:T Ready}" />
+                </DockPanel>
+            </Border>
+
+            <!-- Tabs -->
+            <TabControl x:Name="Tabs" Margin="0,14,0,0" IsEnabled="False">
+
+                <!-- ===== Money & run ===== -->
+                <TabItem Header="{l:T TabMoney}">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel x:Name="MoneyPage" Margin="0,0,6,0" />
+                    </ScrollViewer>
+                </TabItem>
+
+                <!-- ===== Needles ===== -->
+                <TabItem Header="{l:T TabNeedles}">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <Border Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,10">
+                                        <Button DockPanel.Dock="Right" Content="{l:T FindAll}" Style="{StaticResource AccentButton}" Click="FindAll_Click" />
+                                        <TextBlock Text="{l:T CardPile}" Style="{StaticResource H2}" Margin="0" VerticalAlignment="Center" />
+                                    </DockPanel>
+                                    <TextBlock Text="{l:T PileHint}" Style="{StaticResource Hint}" Margin="0,0,0,10" />
+                                    <DataGrid x:Name="NeedleGrid" SelectionMode="Single" MaxHeight="300">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="{l:T ColNo}" Binding="{Binding No}" IsReadOnly="True" Width="50" />
+                                            <DataGridTextColumn Header="{l:T ColType}" Binding="{Binding TypeText}" IsReadOnly="True" Width="140" />
+                                            <DataGridTextColumn Header="{l:T ColPos}" Binding="{Binding PosText}" IsReadOnly="True" Width="*" />
+                                            <DataGridTextColumn Header="{l:T ColDepth}" Binding="{Binding DepthText}" IsReadOnly="True" Width="120" />
+                                            <DataGridTextColumn Header="{l:T ColState}" Binding="{Binding StateText}" IsReadOnly="True" Width="120" />
+                                            <DataGridTemplateColumn Header="{l:T ColFound}" Width="100">
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <CheckBox IsChecked="{Binding Found, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                            </DataGridTemplateColumn>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </StackPanel>
+                            </Border>
+
+                            <Grid Margin="0,12,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*" />
+                                    <ColumnDefinition Width="12" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <DockPanel Margin="0,0,0,10">
+                                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                                <Button Content="{l:T DiscoverAll}" Click="DiscoverAll_Click" Style="{StaticResource SmallButton}" Margin="0,0,6,0" />
+                                                <Button Content="{l:T StockPlus}" Click="StockPlus_Click" Style="{StaticResource SmallButton}" />
+                                            </StackPanel>
+                                            <TextBlock Text="{l:T CardCollection}" Style="{StaticResource H2}" Margin="0" VerticalAlignment="Center" />
+                                        </DockPanel>
+                                        <TextBlock Text="{l:T CollectionHint}" Style="{StaticResource Hint}" Margin="0,0,0,10" />
+                                        <DataGrid x:Name="TypeGrid" SelectionMode="Single" MaxHeight="420">
+                                            <DataGrid.Columns>
+                                                <DataGridTextColumn Header="{l:T ColType}" Binding="{Binding Name}" IsReadOnly="True" Width="*" />
+                                                <DataGridTemplateColumn Header="{l:T ColDiscovered}" Width="110">
+                                                    <DataGridTemplateColumn.CellTemplate>
+                                                        <DataTemplate>
+                                                            <CheckBox IsChecked="{Binding Discovered, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                        </DataTemplate>
+                                                    </DataGridTemplateColumn.CellTemplate>
+                                                </DataGridTemplateColumn>
+                                                <DataGridTemplateColumn Header="{l:T ColStock}" Width="110">
+                                                    <DataGridTemplateColumn.CellTemplate>
+                                                        <DataTemplate>
+                                                            <TextBox Style="{StaticResource CellBox}" Text="{Binding Stock, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                                                        </DataTemplate>
+                                                    </DataGridTemplateColumn.CellTemplate>
+                                                </DataGridTemplateColumn>
+                                                <DataGridTemplateColumn Header="{l:T ColTotal}" Width="110">
+                                                    <DataGridTemplateColumn.CellTemplate>
+                                                        <DataTemplate>
+                                                            <TextBox Style="{StaticResource CellBox}" Text="{Binding Total, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                                                        </DataTemplate>
+                                                    </DataGridTemplateColumn.CellTemplate>
+                                                </DataGridTemplateColumn>
+                                            </DataGrid.Columns>
+                                        </DataGrid>
+                                    </StackPanel>
+                                </Border>
+                                <Border Grid.Column="2" Style="{StaticResource Card}" VerticalAlignment="Top">
+                                    <StackPanel>
+                                        <TextBlock Text="{l:T CardCounters}" Style="{StaticResource H2}" />
+                                        <StackPanel x:Name="NeedleCountersHost" />
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <!-- ===== Radar ===== -->
+                <TabItem Header="{l:T TabMap}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="12" />
+                            <ColumnDefinition Width="330" />
+                        </Grid.ColumnDefinitions>
+                        <Border Style="{StaticResource Card}" Padding="14">
+                            <DockPanel>
+                                <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+                                    <Button x:Name="ResetZoomButton" DockPanel.Dock="Right" Content="{l:T ResetZoom}" Style="{StaticResource SmallButton}" Click="ResetZoom_Click" Margin="12,0,0,0" />
+                                    <TextBlock x:Name="HoverInfo" DockPanel.Dock="Right" Foreground="{StaticResource Muted}" VerticalAlignment="Center" />
+                                    <TextBlock Text="{l:T MapTitle}" Style="{StaticResource H2}" Margin="0,0,16,0" VerticalAlignment="Center" />
+                                    <Border Background="{StaticResource Bg}" CornerRadius="8" Padding="3" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                        <StackPanel Orientation="Horizontal">
+                                            <Button x:Name="View2DButton" Content="{l:T View2D}" Style="{StaticResource SmallButton}" Click="View2D_Click" Margin="0,0,3,0" />
+                                            <Button x:Name="View3DButton" Content="{l:T View3D}" Style="{StaticResource SmallButton}" Click="View3D_Click" />
+                                        </StackPanel>
+                                    </Border>
+                                </DockPanel>
+                                <TextBlock x:Name="MapHintText" DockPanel.Dock="Top" Text="{l:T MapHint}" Style="{StaticResource Hint}" Margin="0,0,0,10" />
+                                <TextBlock x:Name="Hint3DText" DockPanel.Dock="Top" Text="{l:T Hint3D}" Style="{StaticResource Hint}" Margin="0,0,0,10" Visibility="Collapsed" />
+                                <CheckBox x:Name="XRayBox" DockPanel.Dock="Top" Style="{StaticResource Switch}" Content="{l:T XRay}" Margin="0,0,0,10" Visibility="Collapsed" Click="XRay_Click" />
+                                <Grid>
+                                    <l:PileMap x:Name="Map" HorizontalAlignment="Center" VerticalAlignment="Top" />
+                                    <l:Pile3D x:Name="Map3D" Visibility="Collapsed" />
+                                </Grid>
+                            </DockPanel>
+                        </Border>
+                        <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
+                            <StackPanel>
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                            <Ellipse Style="{StaticResource LegendDot}" Fill="#F85555" Stroke="White" StrokeThickness="1.5" />
+                                            <TextBlock Text="{l:T LegNeedle}" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                            <Ellipse Style="{StaticResource LegendDot}" Stroke="#9CA8AD" StrokeThickness="1.8" />
+                                            <TextBlock Text="{l:T LegTaken}" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                            <Path Data="M 0 11 L 5.5 0 L 11 11 Z" Fill="White" Margin="0,0,8,0" VerticalAlignment="Center" />
+                                            <TextBlock Text="{l:T LegPlayer}" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                            <Rectangle Width="11" Height="11" RadiusX="2" RadiusY="2" Fill="#FB923C" Margin="0,0,8,0" />
+                                            <TextBlock Text="{l:T LegBuilding}" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                            <Ellipse Style="{StaticResource LegendDot}" Stroke="#2DD4BF" StrokeThickness="2" />
+                                            <TextBlock Text="{l:T LegTarget}" />
+                                        </StackPanel>
+                                        <WrapPanel>
+                                            <CheckBox x:Name="ShowBuildingsBox" Content="{l:T ShowBuildings}" IsChecked="True" Margin="0,0,14,6" Click="MapToggle_Click" />
+                                            <CheckBox x:Name="ShowTakenBox" Content="{l:T ShowTaken}" IsChecked="True" Margin="0,0,14,6" Click="MapToggle_Click" />
+                                            <CheckBox x:Name="ShowDomeBox" Content="{l:T ShowDome}" Margin="0,0,14,6" Click="MapToggle_Click" />
+                                        </WrapPanel>
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                                    <StackPanel>
+                                        <TextBlock Text="{l:T Fill}" Style="{StaticResource H2}" />
+                                        <Grid Height="10" Margin="0,0,0,6">
+                                            <Border Background="{StaticResource Bg}" CornerRadius="5" />
+                                            <Border x:Name="FillBar" Background="{StaticResource Gold}" CornerRadius="5" HorizontalAlignment="Left" Width="0" />
+                                        </Grid>
+                                        <TextBlock x:Name="FillText" Foreground="{StaticResource Muted}" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                                    <StackPanel>
+                                        <TextBlock Text="{l:T Teleport}" Style="{StaticResource H2}" />
+                                        <TextBlock x:Name="PlayerInfo" Margin="0,0,0,4" />
+                                        <TextBlock x:Name="TargetInfo" Foreground="{StaticResource Accent}" Margin="0,0,0,10" TextWrapping="Wrap" />
+                                        <Button x:Name="TeleportTargetButton" Content="{l:T TeleportTarget}" Style="{StaticResource AccentButton}" Click="TeleportTarget_Click" Margin="0,0,0,8" IsEnabled="False" />
+                                        <Button Content="{l:T TeleportNeedle}" Click="TeleportNeedle_Click" />
+                                        <TextBlock Text="{l:T TeleportHint}" Style="{StaticResource Hint}" Margin="0,10,0,0" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                                    <StackPanel>
+                                        <TextBlock Text="{l:T CardNeedleList}" Style="{StaticResource H2}" />
+                                        <ItemsControl x:Name="MapNeedleList">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Button Content="{Binding Text}" Tag="{Binding Index}" Click="MapNeedle_Click" HorizontalContentAlignment="Left"
+                                                            Style="{StaticResource SmallButton}" Margin="0,0,0,6" Opacity="{Binding Opacity}" />
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
+                </TabItem>
+
+                <!-- ===== Tech ===== -->
+                <TabItem Header="{l:T TabTech}">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel x:Name="TechPage" Margin="0,0,6,0" />
+                    </ScrollViewer>
+                </TabItem>
+
+                <!-- ===== Gear ===== -->
+                <TabItem Header="{l:T TabGear}">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel x:Name="GearPage" Margin="0,0,6,0" />
+                    </ScrollViewer>
+                </TabItem>
+
+                <!-- ===== Buildings ===== -->
+                <TabItem Header="{l:T TabBuildings}">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel x:Name="BuildingsPage" Margin="0,0,6,0" />
+                    </ScrollViewer>
+                </TabItem>
+
+                <!-- ===== Missions ===== -->
+                <TabItem Header="{l:T TabMissions}">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel x:Name="MissionsPage" Margin="0,0,6,0" />
+                    </ScrollViewer>
+                </TabItem>
+
+                <!-- ===== Career ===== -->
+                <TabItem Header="{l:T TabCareer}">
+                    <Border Style="{StaticResource Card}">
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Top" Text="{l:T CareerTitle}" Style="{StaticResource H2}" />
+                            <TextBlock DockPanel.Dock="Top" Text="{l:T CareerHint}" Style="{StaticResource Hint}" Margin="0,0,0,10" />
+                            <TextBlock x:Name="CareerMissing" DockPanel.Dock="Top" Text="{l:T CareerMissing}" Foreground="{StaticResource Warn}" Visibility="Collapsed" />
+                            <DataGrid x:Name="CareerGrid" SelectionMode="Single">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="{l:T ColEntry}" Binding="{Binding Name}" IsReadOnly="True" Width="*" />
+                                    <DataGridTextColumn Header="{l:T ColId}" Binding="{Binding Key}" IsReadOnly="True" Width="*" Foreground="{StaticResource Muted}" />
+                                    <DataGridTemplateColumn Header="{l:T ColValue}" Width="220">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBox Style="{StaticResource CellBox}" Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </DockPanel>
+                    </Border>
+                </TabItem>
+
+                <!-- ===== Backups ===== -->
+                <TabItem Header="{l:T TabBackups}">
+                    <Border Style="{StaticResource Card}">
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Top" Text="{l:T BackupsTitle}" Style="{StaticResource H2}" />
+                            <TextBlock DockPanel.Dock="Top" Text="{l:T BackupsHint}" Style="{StaticResource Hint}" Margin="0,0,0,10" />
+                            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,12">
+                                <Button Content="{l:T BackupNow}" Click="BackupNow_Click" Margin="0,0,8,0" />
+                                <Button x:Name="RestoreButton" Content="{l:T Restore}" Click="Restore_Click" Margin="0,0,8,0" IsEnabled="False" />
+                                <Button Content="{l:T OpenBackupFolder}" Click="OpenBackupFolder_Click" />
+                            </StackPanel>
+                            <TextBlock x:Name="NoBackupsText" DockPanel.Dock="Top" Text="{l:T NoBackups}" Foreground="{StaticResource Muted}" Visibility="Collapsed" />
+                            <ListBox x:Name="BackupList" SelectionChanged="BackupList_SelectionChanged">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <DockPanel>
+                                            <TextBlock DockPanel.Dock="Right" Text="{Binding SizeText}" Foreground="{StaticResource Muted}" VerticalAlignment="Center" />
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                                <TextBlock Text="{Binding TimeText}" Foreground="{StaticResource Muted}" FontSize="11" />
+                                            </StackPanel>
+                                        </DockPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </DockPanel>
+                    </Border>
+                </TabItem>
+
+                <!-- ===== Raw ===== -->
+                <TabItem Header="{l:T TabRaw}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="12" />
+                            <ColumnDefinition Width="380" />
+                        </Grid.ColumnDefinitions>
+                        <Border Style="{StaticResource Card}" Padding="10">
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Top" Text="{l:T RawTitle}" Style="{StaticResource H2}" Margin="8,4,0,6" />
+                                <TreeView x:Name="RawTree" Background="Transparent" BorderThickness="0" Foreground="{StaticResource Text}"
+                                          SelectedItemChanged="RawTree_SelectedItemChanged" VirtualizingPanel.IsVirtualizing="True" />
+                            </DockPanel>
+                        </Border>
+                        <StackPanel Grid.Column="2">
+                            <Border Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <TextBlock Text="{l:T RawHint}" Style="{StaticResource Hint}" Margin="0,0,0,12" />
+                                    <TextBlock Text="{l:T RawPath}" Style="{StaticResource ColLabel}" />
+                                    <TextBlock x:Name="RawPathText" TextWrapping="Wrap" Margin="0,2,0,10" FontFamily="Consolas" />
+                                    <TextBlock Text="{l:T RawType}" Style="{StaticResource ColLabel}" />
+                                    <TextBlock x:Name="RawTypeText" Margin="0,2,0,10" />
+                                    <TextBlock Text="{l:T RawValue}" Style="{StaticResource ColLabel}" />
+                                    <TextBox x:Name="RawValueBox" Margin="0,4,0,8" MinHeight="34" MaxHeight="220" TextWrapping="Wrap" AcceptsReturn="False"
+                                             VerticalScrollBarVisibility="Auto" FontFamily="Consolas" IsEnabled="False" KeyDown="RawValueBox_KeyDown" />
+                                    <TextBlock x:Name="RawNote" Style="{StaticResource Hint}" Margin="0,0,0,8" />
+                                    <Button x:Name="RawApplyButton" Content="{l:T RawApply}" Style="{StaticResource AccentButton}" Click="RawApply_Click" IsEnabled="False" HorizontalAlignment="Left" />
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                                <StackPanel>
+                                    <Button Content="{l:T ExportJson}" Click="ExportJson_Click" Margin="0,0,0,8" />
+                                    <Button Content="{l:T ExportBin}" Click="ExportBin_Click" Margin="0,0,0,8" />
+                                    <Button Content="{l:T ImportBin}" Click="ImportBin_Click" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </TabItem>
+            </TabControl>
+        </DockPanel>
+    </Grid>
+</Window>

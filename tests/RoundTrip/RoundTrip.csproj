@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../src/FindTheNeedleEditor/Core/GVariant.cs" Link="Core/GVariant.cs" />
+    <Compile Include="../../src/FindTheNeedleEditor/Core/SaveCrypto.cs" Link="Core/SaveCrypto.cs" />
+    <Compile Include="../../src/FindTheNeedleEditor/Core/SaveDoc.cs" Link="Core/SaveDoc.cs" />
+    <Compile Include="../../src/FindTheNeedleEditor/Core/SaveStore.cs" Link="Core/SaveStore.cs" />
+    <Compile Include="../../src/FindTheNeedleEditor/Core/ProfileCfg.cs" Link="Core/ProfileCfg.cs" />
+    <Compile Include="../../src/FindTheNeedleEditor/Core/Loc.cs" Link="Core/Loc.cs" />
+    <Compile Include="../../src/FindTheNeedleEditor/Core/Fmt.cs" Link="Core/Fmt.cs" />
+    <Compile Include="../../src/FindTheNeedleEditor/Core/KeyFinder.cs" Link="Core/KeyFinder.cs" />
+  </ItemGroup>
+</Project>
