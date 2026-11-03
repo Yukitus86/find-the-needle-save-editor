@@ -62,7 +62,7 @@ The pile in Find The Needle hides a handful of needles under metres of hay. The 
 | **Money** | Balance with quick buttons (+1,000 … +1 M, ×2), clear debt, all run records as tiles (click to edit), jetpack fuel, radar cooldown, haystack counters, run flags |
 | **Needles** | The needles hidden in the pile (position, hay above, mark as found – counted like in the game), the collection of all needle types (discovered, stock, total) |
 | **Radar** | See above |
-| **Tech** | Every upgrade as a tree per area (base tech → upgrades on top of it), ranks with −/+, unlock locked ones, search, all +1 / −1 / to rank X, unlock all known |
+| **Tech** | All 122 cards of the game, read from its own card table: real prerequisites as a tree per branch, real maximum ranks (2–8, shown as **MAX** in gold, never above), level pips, the effect of the current rank, costs and values per level on hover, cards that only exist in the full game are locked. Unlocking a card also unlocks what it requires. All +1 / −1 / to MAX, unlock everything, search |
 | **Gear** | Shop tools as clickable tiles, the build hotbar as keys 1–9, gifts waiting to be claimed, clear the "new" badges |
 | **Buildings** | Overview (count, switched on, invested, total fuel), one card per building type with on/off switches, fuel bars, storage and tier; switch all on/off, refuel all generators |
 | **Missions** | Current mission, contracts, done/paid lists as chips, spending analysis from the purchase log (by kind, biggest items) |
@@ -148,6 +148,7 @@ Command-line options of the editor, mainly for testing and screenshots:
 | `src/FindTheNeedleEditor/Core/SaveDoc.cs`, `SaveStore.cs`, `ProfileCfg.cs` | Typed access to the save, slots, backups, safe writing, career file |
 | `src/FindTheNeedleEditor/PileMap.cs`, `Pile3D.cs` | Radar top view and 3D view |
 | `src/FindTheNeedleEditor/Pages.cs`, `TechPage.cs`, `UiKit.cs` | Tile-based pages |
+| `src/FindTheNeedleEditor/Core/TechDb.cs`, `Assets/techtree.json` | The game's tech cards (English/German): kind, branch, max rank, costs, prerequisites, values |
 | `tests/RoundTrip` | Round-trip, edit and key-finder checks |
 
 See [CHANGELOG.md](CHANGELOG.md) for the version history.

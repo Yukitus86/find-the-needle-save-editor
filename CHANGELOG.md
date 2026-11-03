@@ -16,7 +16,7 @@
 - The "debug flag" switch is gone from the Money tab (the editor sets it on every save)
 - Dark Windows title bar
 - Money, Gear, Buildings and Missions redesigned: value tiles with readable numbers (click to edit), switches, chips and bars instead of tables
-- Tech tab is now a tree per area (base tech → upgrades), with unlock buttons, search and bulk actions
+- Tech tab is built from the game's own card table (122 cards, English and German): real prerequisites as a tree per branch, real maximum ranks with a gold **MAX** and no way above it, level pips, current effect, costs/values per level on hover, full-game-only cards locked; unlocking pulls in required cards; "All to MAX" and "Unlock everything"
 - Hotbar shown as keys 1–9, tools as clickable tiles
 - English is the default language; German via the flag, remembered
 

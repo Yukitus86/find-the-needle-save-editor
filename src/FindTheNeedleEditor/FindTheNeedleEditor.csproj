@@ -28,6 +28,7 @@
   <ItemGroup>
     <Resource Include="Assets\app.ico" />
     <Resource Include="Assets\logo.png" />
+    <EmbeddedResource Include="Assets/techtree.json" LogicalName="FindTheNeedleEditor.Assets.techtree.json" />
     <None Remove="Assets\icon_full.png;Assets\icon_small.png" />
   </ItemGroup>
 

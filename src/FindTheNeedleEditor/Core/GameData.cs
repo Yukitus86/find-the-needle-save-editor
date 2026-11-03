@@ -179,6 +179,7 @@ public static class GameData
     };
 
     public static string TechName(string id) =>
+        TechDb.Get(id) is { } card ? card.DisplayName :
         Techs.TryGetValue(id, out var t) ? (Loc.Instance.Language == UiLanguage.German ? t.De : t.En) : Fmt.Pretty(id);
 
     public static TechGroup? TechGroupOf(string id) => Techs.TryGetValue(id, out var t) ? t.G : null;
